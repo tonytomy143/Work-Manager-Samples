@@ -2,6 +2,7 @@ package com.example.workmanagertutorial
 
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
+import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.PeriodicWorkRequest.MIN_PERIODIC_INTERVAL_MILLIS
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
@@ -14,7 +15,8 @@ class MainActivity : AppCompatActivity() {
     private val TAG = "MainActivity"
 
     private lateinit var binding: ActivityMainBinding
-    private lateinit var uploadWorkRequest: WorkRequest
+    private lateinit var oneTimeRequest: WorkRequest
+    private lateinit var periodicRequest: WorkRequest
     private lateinit var workManager: WorkManager
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -23,23 +25,35 @@ class MainActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         workManager = WorkManager.getInstance(this)
-//        uploadWorkRequest = OneTimeWorkRequestBuilder<UploadWorker>().build()
+        oneTimeRequest = OneTimeWorkRequestBuilder<OneTimeWorker>().build()
 
-        uploadWorkRequest = PeriodicWorkRequestBuilder<UploadWorker>(
+        periodicRequest = PeriodicWorkRequestBuilder<PeriodicWorker>(
             MIN_PERIODIC_INTERVAL_MILLIS,
             TimeUnit.MILLISECONDS
         ).build() // Min Interval should be 15 min
 
 
-        binding.btnStartWorker.setOnClickListener {
-            workManager.enqueue(uploadWorkRequest)
-            binding.tvWorkerStatus.text = "Work Manager executed!"
+        binding.btnOneTimeWork.setOnClickListener {
+            workManager.enqueue(oneTimeRequest)
+            binding.tvOneTimeStatus.text = "One Time Request Executed!"
         }
 
-        workManager.getWorkInfoByIdLiveData(uploadWorkRequest.id).observe(this) {
+        binding.btnPeriodicWork.setOnClickListener {
+            workManager.enqueue(periodicRequest)
+            binding.tvPeriodicStatus.text = "Periodic Request Executed!"
+        }
+
+        workManager.getWorkInfoByIdLiveData(oneTimeRequest.id).observe(this) {
             if (it != null) {
                 val state = it.state
-                binding.tvWorkerStatus.append(state.toString() + "\n")
+                binding.tvOneTimeStatus.append("$state\n")
+            }
+        }
+
+        workManager.getWorkInfoByIdLiveData(periodicRequest.id).observe(this) {
+            if (it != null) {
+                val state = it.state
+                binding.tvPeriodicStatus.append("$state\n")
             }
         }
 
