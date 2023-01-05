@@ -43,6 +43,10 @@ class MainActivity : AppCompatActivity() {
             binding.tvPeriodicStatus.text = "Periodic Request Executed!"
         }
 
+        binding.btnCancelWork.setOnClickListener {
+            workManager.cancelAllWork()
+        }
+
         workManager.getWorkInfoByIdLiveData(oneTimeRequest.id).observe(this) {
             if (it != null) {
                 val state = it.state
